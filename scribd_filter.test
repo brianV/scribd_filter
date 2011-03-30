@@ -49,7 +49,7 @@ class ScribdFilterTestCase extends DrupalWebTestCase {
     $langcode = LANGUAGE_NONE;
     $edit = array(
       "title" => $this->randomName(),
-      "body[$langcode][0][value]" => 'Hello! [scribd:'.$this->scribd_document_id.':'.$this->scribd_access_key.']',
+      "body[$langcode][0][value]" => 'Hello! [scribd id='.$this->scribd_document_id.' key='.$this->scribd_access_key.' mode=list]',
     );
     $result = $this->drupalPost('node/add/' . $this->contentType->type, $edit, t('Save'));
     $this->assertResponse(200);
@@ -80,7 +80,7 @@ scribd_doc.write("embedded_flash");
     $langcode = LANGUAGE_NONE;
     $edit = array(
       "title" => $this->randomName(),
-      "body[$langcode][0][value]" => 'Hello! [scribd:'.$this->scribd_document_id.':'.$this->scribd_access_key.']',
+      "body[$langcode][0][value]" => 'Hello! [scribd id='.$this->scribd_document_id.' key='.$this->scribd_access_key.' mode=list]',
     );
     $result = $this->drupalPost('node/add/' . $this->contentType->type, $edit, t('Save'));
     $this->assertResponse(200);

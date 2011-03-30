@@ -14,7 +14,7 @@
 function scribd_filter_filter_info() {
   $filters['scribd_filter'] = array(
     'title' => t('Scribd documents filter'),
-    'description' => t('Substitutes [scribd:xx::yy] tags with the scribd document located at http://scribd.com/doc/xx.'),
+    'description' => t('Substitutes [scribd id=xx key=yy] tags with the scribd document located at http://scribd.com/doc/xx.'),
     'process callback'  => 'scribd_filter_scribd_filter_process',
     'default settings' => array(
       'scribd_filter_display_method' => 'embed',
@@ -32,7 +32,7 @@ function scribd_filter_filter_info() {
 function scribd_filter_scribd_filter_process($text, $filter, $format) {
   $display = $filter->settings['scribd_filter_display_method'];
   $callback = '_scribd_display_' . $display;
-  return preg_replace_callback('@\[scribd\:(\d+)\:?(.*)?\]@', $callback, $text);
+  return preg_replace_callback('@\[scribd\ id=(\d+)\ key=?(.*)\ mode=(.*)?\]@', $callback, $text);
 }
 
 /**
@@ -71,7 +71,7 @@ function _scribd_display_embed($matches) {
     '<script type="text/javascript" src="http://www.scribd.com/javascripts/view.js"></script>',
     '<div id="embedded_flash" class="collapsible collapsed"></div>',
     '<script type="text/javascript">',
-    'var scribd_doc = scribd.Document.getDoc("' . $matches[1] . '", "' . $data['scribd_access_key'] . '");',
+    'var scribd_doc = scribd.Document.getDoc("' . $data['scribd_doc_id'] . '", "' . $data['scribd_access_key'] . '");',
     'scribd_doc.addParam("jsapi_version", 1);',
   );
   $output[] = 'scribd_doc.write("embedded_flash");';
