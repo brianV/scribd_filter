@@ -86,6 +86,6 @@ function _scribd_display_embed($matches) {
 function _scribd_display_link($matches) {
   $data['scribd_doc_id'] = $matches[1];
   $data['scribd_access_key'] = $matches[2];
-  $scribd_url = 'http://www.scribd.com/full/'.$data['scribd_doc_id'].'?access_key=' . $data['scribd_access_key'] = $matches[2];
+  $scribd_url = 'http://www.scribd.com/full/'.$data['scribd_doc_id'].'?access_key=' . $data['scribd_access_key'];
   return l($scribd_url, $scribd_url);
 }
