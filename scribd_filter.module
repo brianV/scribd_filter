@@ -71,7 +71,7 @@ function _scribd_display_embed($matches) {
     '<script type="text/javascript" src="http://www.scribd.com/javascripts/view.js"></script>',
     '<div id="embedded_flash" class="collapsible collapsed"></div>',
     '<script type="text/javascript">',
-    'var scribd_doc = scribd.Document.getDoc("' . $data['scribd_doc_id'] . '", "' . $data['scribd_access_key'] . '");',
+    'var scribd_doc = scribd.Document.getDoc("' . check_plain($data['scribd_doc_id']) . '", "' . check_plain($data['scribd_access_key']) . '");',
     'scribd_doc.addParam("jsapi_version", 1);',
   );
   $output[] = 'scribd_doc.write("embedded_flash");';
@@ -86,6 +86,6 @@ function _scribd_display_embed($matches) {
 function _scribd_display_link($matches) {
   $data['scribd_doc_id'] = $matches[1];
   $data['scribd_access_key'] = $matches[2];
-  $scribd_url = 'http://www.scribd.com/full/'.$data['scribd_doc_id'].'?access_key=' . $data['scribd_access_key'];
+  $scribd_url = 'http://www.scribd.com/full/' . check_plain($data['scribd_doc_id']) . '?access_key=' . check_plain($data['scribd_access_key']);
   return l($scribd_url, $scribd_url);
 }
