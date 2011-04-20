@@ -57,7 +57,7 @@ function scribd_filter_scribd_filter_settings($form, $form_state, $filter, $form
 function scribd_filter_filter_tips($filter, $format, $long = FALSE) {
   $display = $filter->settings['scribd_filter_display_method'];
   $action = $display == 'embed' ? t('embed the scribd document') : t('create a link to the scribd document');
-  return t('Use [scribd:xx:yy] where xx is you scribd document_id and yy is your scribd document access_key to %action.', array('%action' => $action));
+  return t('Use [scribd id=xx key=yy] where xx is you scribd document_id and yy is your scribd document access_key to %action.', array('%action' => $action));
 }
 
 /**
