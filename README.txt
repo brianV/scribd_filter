@@ -7,6 +7,6 @@ In case you did not know: "Scribd is the world's largest social reading and publ
 
 To add a document from Scribd to a post, simply add the following code to your input field
  
-    [scribd id=xxxx key=yyyy mode=zzzz] 
+    [scribd id=xxxx key=yyyy] 
     
-where id=xxxx is the document_id from Scribd, and key=yyyy is the access_key. mode=zzzz is not used at the moment, but has been enclosed because it is the same as Wordpress uses. And that makes it possible to copy the include code directly from scribd.
+where id=xxxx is the document_id from Scribd, and key=yyyy is the access_key. You can copy the Wordpress filter directly from Scribd, and it will work in Drupal with this filter.
