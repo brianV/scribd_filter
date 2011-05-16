@@ -44,6 +44,8 @@ function scribd_filter_scribd_filter_settings($form, $form_state, $filter, $form
     '#type' => 'select',
     '#options' => array(
       'embed' => t('Embed'),
+      'embed_html5' => t('Embed HTML5'),
+      'embed_flash' => t('Embed Flash'),      
       'link' => t('Link'),
     ),
     '#default_value' => isset($filter->settings['scribd_filter_display_method']) ? $filter->settings['scribd_filter_display_method'] : $defaults['scribd_filter_display_method'],
@@ -77,6 +79,28 @@ function _scribd_display_embed($matches) {
   $output[] = 'scribd_doc.write("embedded_flash");';
   $output[] = '</script>';
 
+  return implode("\n", $output);
+}
+
+function _scribd_display_embed_flash($matches) {
+  $data['scribd_doc_id'] = $matches[1];
+  $data['scribd_access_key'] = $matches[2];
+  $output = array('<object id="doc_' . check_plain($data['scribd_doc_id']) . '" name="doc_' . check_plain($data['scribd_doc_id']) . '" height="600" width="100%" type="application/x-shockwave-flash" data="http://d1.scribdassets.com/ScribdViewer.swf">');
+  $output[] = '<param name="movie" value="http://d1.scribdassets.com/ScribdViewer.swf">';
+  $output[] = '<param name="wmode" value="opaque">';
+  $output[] = '<param name="bgcolor" value="#ffffff">';
+  $output[] = '<param name="allowFullScreen" value="true">';
+  $output[] = '<param name="allowScriptAccess" value="always">';
+  $output[] = '<param name="FlashVars" value="document_id=' . check_plain($data['scribd_doc_id']) . '&access_key=' . check_plain($data['scribd_access_key']) . '&page=1&viewMode=list">';
+  $output[] = '<embed id="doc_' . check_plain($data['scribd_doc_id']) . '" name="doc_' . check_plain($data['scribd_doc_id']) . '" src="http://d1.scribdassets.com/ScribdViewer.swf?document_id=' . check_plain($data['scribd_doc_id']) . '&access_key=' . check_plain($data['scribd_access_key']) . '&page=1&viewMode=list" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" height="600" width="100%" wmode="opaque" bgcolor="#ffffff"></embed>';
+  $output[] = '</object>';
+  return implode("\n", $output);
+}
+
+function _scribd_display_embed_html5($matches) {
+  $data['scribd_doc_id'] = $matches[1];
+  $data['scribd_access_key'] = $matches[2];
+  $output = array('<iframe class="scribd_iframe_embed" src="http://www.scribd.com/embeds/' . check_plain($data['scribd_doc_id']) . '/content?start_page=1&view_mode=list&access_key=' . check_plain($data['scribd_access_key']) . '" data-auto-height="true" data-aspect-ratio="1.44339622641509" scrolling="no" id="doc_' . check_plain($data['scribd_doc_id']) . '" width="100%" height="600" frameborder="0"></iframe><script type="text/javascript">(function() { var scribd = document.createElement("script"); scribd.type = "text/javascript"; scribd.async = true; scribd.src = "http://www.scribd.com/javascripts/embed_code/inject.js"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(scribd, s); })();</script>');
   return implode("\n", $output);
 }
 
