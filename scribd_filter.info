@@ -1,5 +1,5 @@
 name = Scribd Input Filter
-description = "Provides the ability to embed documents from Scribd."
+description = "Provides an input filter for embedding documents from Scribd."
 core = 7.x
 
 ; Package name (see http://drupal.org/node/101009 for a list of names)
