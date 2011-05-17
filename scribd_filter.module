@@ -56,7 +56,7 @@ function scribd_filter_filter_info() {
 function scribd_filter_scribd_filter_process($text, $filter, $format) {
   $display = $filter->settings['scribd_filter_display_method'];
   $callback = '_scribd_display_' . $display;
-  return preg_replace_callback('@\[scribd id=(\d+) key=(.*)\]@', $callback, $text);
+  return preg_replace_callback('@\[scribd id=(\d+) key=(.*)( mode=)?(.*)?\]@', $callback, $text);
 }
 
 /**
