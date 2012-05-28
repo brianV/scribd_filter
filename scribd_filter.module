@@ -51,7 +51,8 @@ function scribd_filter_filter_info() {
 }
 
 class ScribdInputFilter {
-  protected $pattern = '@\[scribd id=(\d+) key=(.*)( mode=)?(.*)?\]@';
+  // suggested in #regex '/\[scribd\sid=([^\s]+)\skey=([^\s]+)\smode=([^]]+)\]/';
+  protected $pattern = '/\[scribd\sid=([^\s]+)\skey=([^\s]+)\s*(?:mode=(\S+))?]/';
   protected $filter;
   
   public function __construct($filter) {
@@ -91,7 +92,10 @@ class ScribdInputFilter {
         $data['scribd_mode'] = 'list';
       }
     }
-    $data['scribd_mode'] = $matches[3];        
+    if ($data['scribd_mode'] == 'link') {
+      return $this->link($matches);
+    }
+      
     $output = array('<iframe class="scribd_iframe_embed" src="http://www.scribd.com/embeds/' . check_plain($data['scribd_doc_id']) . '/content?start_page=1&view_mode=' . check_plain($data['scribd_mode']) . '&access_key=' . check_plain($data['scribd_access_key']) . '" data-auto-height="true" data-aspect-ratio="1.44339622641509" scrolling="no" id="doc_' . check_plain($data['scribd_doc_id']) . '" width="100%" height="600" frameborder="0"></iframe>');
   return implode("\n", $output);
   }
@@ -109,7 +113,11 @@ class ScribdInputFilter {
       else {
         $data['scribd_mode'] = 'list';
       }
-    }  
+    }
+    if ($data['scribd_mode'] == 'link') {
+      return $this->link($matches);
+    }
+    
     $output = array('<object id="doc_' . check_plain($data['scribd_doc_id']) . '" name="doc_' . check_plain($data['scribd_doc_id']) . '" height="600" width="100%" type="application/x-shockwave-flash" data="http://d1.scribdassets.com/ScribdViewer.swf">');
     $output[] = '<param name="movie" value="http://d1.scribdassets.com/ScribdViewer.swf">';
     $output[] = '<param name="wmode" value="opaque">';
