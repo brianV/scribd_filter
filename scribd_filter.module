@@ -75,57 +75,54 @@ class ScribdInputFilter {
   }
   
   public function parse($text) {
-    return preg_replace_callback($this->pattern, array($this, $this->filter->settings['scribd_filter_display_method']), $text);  
+    return preg_replace_callback($this->pattern, array($this, 'embed'), $text);  
   }
   
-  protected function embed_html5($matches) {
-    $data['scribd_doc_id'] = $matches[1];
-    $data['scribd_access_key'] = $matches[2];
+  protected function embed($matches) {
+    $data['scribd_doc_id'] = check_plain($matches[1]);
+    $data['scribd_access_key'] = check_plain($matches[2]);
     if (!empty($matches[3])) {
-      $data['scribd_mode'] = $matches[3];
+      $data['scribd_mode'] = check_plain($matches[3]);
     }
     else {
       if (!empty($this->filter->settings['scribd_filter_display_mode'])) {
-        $data['scribd_mode'] = $this->filter->settings['scribd_filter_display_mode'];
+        $data['scribd_mode'] = check_plain($this->filter->settings['scribd_filter_display_mode']);
       }
       else {
         $data['scribd_mode'] = 'list';
       }
     }
     if ($data['scribd_mode'] == 'link') {
-      return $this->link($matches);
+      return $this->link($data['scribd_doc_id'], $data['scribd_access_key']);
     }
-      
-    $output = array('<iframe class="scribd_iframe_embed" src="http://www.scribd.com/embeds/' . check_plain($data['scribd_doc_id']) . '/content?start_page=1&view_mode=' . check_plain($data['scribd_mode']) . '&access_key=' . check_plain($data['scribd_access_key']) . '" data-auto-height="true" data-aspect-ratio="1.44339622641509" scrolling="no" id="doc_' . check_plain($data['scribd_doc_id']) . '" width="100%" height="600" frameborder="0"></iframe>');
+
+    switch (check_plain($this->filter->settings['scribd_filter_display_method'])) {
+      case 'embed_flash':
+        return $this->embed_flash($data['scribd_doc_id'], $data['scribd_access_key'], $data['scribd_mode']);
+        break;
+      case 'link':
+        return $this->link($data['scribd_doc_id'], $data['scribd_access_key']);
+        break;
+      default:
+        return $this->embed_html5($data['scribd_doc_id'], $data['scribd_access_key'], $data['scribd_mode']);
+        break;
+    }
+  }
+  
+  protected function embed_html5($scribd_doc_id, $scribd_access_key, $scribd_mode = 'list') {
+    $output = array('<iframe class="scribd_iframe_embed" src="http://www.scribd.com/embeds/' . $scribd_doc_id . '/content?start_page=1&view_mode=' . $scribd_mode . '&access_key=' . $scribd_access_key . '" data-auto-height="true" data-aspect-ratio="1.44339622641509" scrolling="no" id="doc_' . $scribd_doc_id . '" width="100%" height="600" frameborder="0"></iframe>');
   return implode("\n", $output);
   }
   
-  protected function embed_flash($matches) {
-    $data['scribd_doc_id'] = $matches[1];
-    $data['scribd_access_key'] = $matches[2];
-    if (!empty($matches[3])) {
-      $data['scribd_mode'] = $matches[3];
-    }
-    else {
-      if (!empty($this->filter->settings['scribd_filter_display_mode'])) {
-        $data['scribd_mode'] = $this->filter->settings['scribd_filter_display_mode'];
-      }
-      else {
-        $data['scribd_mode'] = 'list';
-      }
-    }
-    if ($data['scribd_mode'] == 'link') {
-      return $this->link($matches);
-    }
-    
-    $output = array('<object id="doc_' . check_plain($data['scribd_doc_id']) . '" name="doc_' . check_plain($data['scribd_doc_id']) . '" height="600" width="100%" type="application/x-shockwave-flash" data="http://d1.scribdassets.com/ScribdViewer.swf">');
+  protected function embed_flash($scribd_doc_id, $scribd_access_key, $scribd_mode = 'list') {
+    $output = array('<object id="doc_' . $scribd_doc_id . '" name="doc_' . $scribd_doc_id . '" height="600" width="100%" type="application/x-shockwave-flash" data="http://d1.scribdassets.com/ScribdViewer.swf">');
     $output[] = '<param name="movie" value="http://d1.scribdassets.com/ScribdViewer.swf">';
     $output[] = '<param name="wmode" value="opaque">';
     $output[] = '<param name="bgcolor" value="#ffffff">';
     $output[] = '<param name="allowFullScreen" value="true">';
     $output[] = '<param name="allowScriptAccess" value="always">';
-    $output[] = '<param name="FlashVars" value="document_id=' . check_plain($data['scribd_doc_id']) . '&access_key=' . check_plain($data['scribd_access_key']) . '&page=1&viewMode=list">';
-    $output[] = '<embed id="doc_' . check_plain($data['scribd_doc_id']) . '" name="doc_' . check_plain($data['scribd_doc_id']) . '" src="http://d1.scribdassets.com/ScribdViewer.swf?document_id=' . check_plain($data['scribd_doc_id']) . '&access_key=' . check_plain($data['scribd_access_key']) . '&page=1&viewMode=' . check_plain($data['scribd_mode']) . '" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" height="600" width="100%" wmode="opaque" bgcolor="#ffffff"></embed>';
+    $output[] = '<param name="FlashVars" value="document_id=' . $scribd_doc_id . '&access_key=' . $scribd_access_key . '&page=1&viewMode=' . $scribd_mode . '">';
+    $output[] = '<embed id="doc_' . $scribd_doc_id . '" name="doc_' . $scribd_doc_id . '" src="http://d1.scribdassets.com/ScribdViewer.swf?document_id=' . $scribd_doc_id . '&access_key=' . $scribd_access_key . '&page=1&viewMode=' . $scribd_mode . '" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" height="600" width="100%" wmode="opaque" bgcolor="#ffffff"></embed>';
     $output[] = '</object>';
     return implode("\n", $output);
   }
@@ -133,10 +130,8 @@ class ScribdInputFilter {
   /**
    * Replace the text with a link.
    */
-  function link($matches) {
-    $data['scribd_doc_id'] = $matches[1];
-    $data['scribd_access_key'] = $matches[2];
-    $scribd_url = 'http://www.scribd.com/full/' . check_plain($data['scribd_doc_id']) . '?access_key=' . check_plain($data['scribd_access_key']);
+  function link($scribd_doc_id, $scribd_access_key) {
+    $scribd_url = 'http://www.scribd.com/full/' . $scribd_doc_id . '?access_key=' . $scribd_access_key;
     return l($scribd_url, $scribd_url);
   }
 }
