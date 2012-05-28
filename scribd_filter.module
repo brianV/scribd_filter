@@ -19,7 +19,7 @@ function scribd_filter_help($path, $arg) {
       $output .= '<h3>' . t('Uses') . '</h3>';
       $output .= '<dl>';
       $output .= '<dt>' . t('Usage') . '</dt>';
-      $output .= '<dd>' . t('To embed a document, you need to use the following code snippet: <samp>[scribd id=doc_id key=access_key]</samp>.') . '.</dd>';
+      $output .= '<dd>' . t('To embed a document, you need to use the following code snippet: <samp>[scribd id=doc_id key=access_key mode=mode]</samp>.') . ' where mode is optional.</dd>';
       $output .= '<dt>' . t('How to find the album id?') . '</dt>';
       $output .= '<dd><ul>';
       $output .= '<li>' . t('Navigate to Scribd and find the embed button') . '.</li>';
@@ -38,7 +38,7 @@ function scribd_filter_help($path, $arg) {
 function scribd_filter_filter_info() {
   $filters['scribd_filter'] = array(
     'title' => t('Scribd documents filter'),
-    'description' => t('Substitutes [scribd id=xx key=yy] tags with the scribd document located at http://scribd.com/doc/xx.'),
+    'description' => t('Substitutes [scribd id=xx key=yy mode=zz] tags with the scribd document located at http://scribd.com/doc/xx.'),
     'process callback'  => 'scribd_filter_scribd_filter_process',
     'default settings' => array(
       'scribd_filter_display_method' => 'embed',
@@ -50,13 +50,65 @@ function scribd_filter_filter_info() {
   return $filters;
 }
 
+class ScribdInputFilter {
+  protected $pattern = '@\[scribd id=(\d+) key=(.*)( mode=)?(.*)?\]@';
+  protected $filter;
+  
+  public function __construct($filter) {
+    $this->filter = $filter;
+  }
+  
+  static public function type() {
+    return array(
+      'embed_flash' => 'Flash',
+      'embed_html5' => 'Html5',
+      'link' => 'Link'
+    );
+  }
+  
+  public function parse($text) {
+    return preg_replace_callback($this->pattern, array($this, $this->filter->settings['scribd_filter_display_method']), $text);  
+  }
+  
+  protected function embed_html5($matches) {
+    $data['scribd_doc_id'] = $matches[1];
+    $data['scribd_access_key'] = $matches[2];
+    $output = array('<iframe class="scribd_iframe_embed" src="http://www.scribd.com/embeds/' . check_plain($data['scribd_doc_id']) . '/content?start_page=1&view_mode=list&access_key=' . check_plain($data['scribd_access_key']) . '" data-auto-height="true" data-aspect-ratio="1.44339622641509" scrolling="no" id="doc_' . check_plain($data['scribd_doc_id']) . '" width="100%" height="600" frameborder="0"></iframe>');
+  return implode("\n", $output);
+  }
+  
+  protected function embed_flash($matches) {
+    $data['scribd_doc_id'] = $matches[1];
+    $data['scribd_access_key'] = $matches[2];
+    $output = array('<object id="doc_' . check_plain($data['scribd_doc_id']) . '" name="doc_' . check_plain($data['scribd_doc_id']) . '" height="600" width="100%" type="application/x-shockwave-flash" data="http://d1.scribdassets.com/ScribdViewer.swf">');
+    $output[] = '<param name="movie" value="http://d1.scribdassets.com/ScribdViewer.swf">';
+    $output[] = '<param name="wmode" value="opaque">';
+    $output[] = '<param name="bgcolor" value="#ffffff">';
+    $output[] = '<param name="allowFullScreen" value="true">';
+    $output[] = '<param name="allowScriptAccess" value="always">';
+    $output[] = '<param name="FlashVars" value="document_id=' . check_plain($data['scribd_doc_id']) . '&access_key=' . check_plain($data['scribd_access_key']) . '&page=1&viewMode=list">';
+    $output[] = '<embed id="doc_' . check_plain($data['scribd_doc_id']) . '" name="doc_' . check_plain($data['scribd_doc_id']) . '" src="http://d1.scribdassets.com/ScribdViewer.swf?document_id=' . check_plain($data['scribd_doc_id']) . '&access_key=' . check_plain($data['scribd_access_key']) . '&page=1&viewMode=list" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" height="600" width="100%" wmode="opaque" bgcolor="#ffffff"></embed>';
+    $output[] = '</object>';
+    return implode("\n", $output);
+  }
+
+  /**
+   * Replace the text with a link.
+   */
+  function link($matches) {
+    $data['scribd_doc_id'] = $matches[1];
+    $data['scribd_access_key'] = $matches[2];
+    $scribd_url = 'http://www.scribd.com/full/' . check_plain($data['scribd_doc_id']) . '?access_key=' . check_plain($data['scribd_access_key']);
+    return l($scribd_url, $scribd_url);
+  }
+}
+
 /**
  * Process callback for hook_filter_info().
  */
 function scribd_filter_scribd_filter_process($text, $filter, $format) {
-  $display = $filter->settings['scribd_filter_display_method'];
-  $callback = '_scribd_display_' . $display;
-  return preg_replace_callback('@\[scribd id=(\d+) key=(.*)( mode=)?(.*)?\]@', $callback, $text);
+  $si = new ScribdInputFilter($filter);
+  return $si->parse($text);  
 }
 
 /**
@@ -67,7 +119,6 @@ function scribd_filter_scribd_filter_settings($form, $form_state, $filter, $form
     '#title' => t('Scribd display method'),
     '#type' => 'select',
     '#options' => array(
-      'embed' => t('Embed'),
       'embed_html5' => t('Embed HTML5'),
       'embed_flash' => t('Embed Flash'),      
       'link' => t('Link'),
@@ -83,57 +134,6 @@ function scribd_filter_scribd_filter_settings($form, $form_state, $filter, $form
 function scribd_filter_filter_tips($filter, $format, $long = FALSE) {
   $display = $filter->settings['scribd_filter_display_method'];
   $action = $display == 'embed' ? t('embed the scribd document') : t('create a link to the scribd document');
-  return t('Use [scribd id=xx key=yy] where xx is you scribd document_id, yy is your scribd document access_key to %action.', array('%action' => $action));
+  return t('Use [scribd id=xx key=yy mode=zz] where xx is you scribd document_id, yy is your scribd document access_key and zz is your optional mode (scroll or slideshow) to %action.', array('%action' => $action));
 }
 
-/**
- * Display a Scribd.com file via iPaper by replacing the text.
- */
-function _scribd_display_embed($matches) {
-  $data['scribd_doc_id'] = $matches[1];
-  $data['scribd_access_key'] = $matches[2];
-
-  $output = array(
-    '<script type="text/javascript" src="http://www.scribd.com/javascripts/view.js"></script>',
-    '<div id="embedded_flash" class="collapsible collapsed"></div>',
-    '<script type="text/javascript">',
-    'var scribd_doc = scribd.Document.getDoc("' . check_plain($data['scribd_doc_id']) . '", "' . check_plain($data['scribd_access_key']) . '");',
-    'scribd_doc.addParam("jsapi_version", 1);',
-  );
-  $output[] = 'scribd_doc.write("embedded_flash");';
-  $output[] = '</script>';
-
-  return implode("\n", $output);
-}
-
-function _scribd_display_embed_flash($matches) {
-  $data['scribd_doc_id'] = $matches[1];
-  $data['scribd_access_key'] = $matches[2];
-  $output = array('<object id="doc_' . check_plain($data['scribd_doc_id']) . '" name="doc_' . check_plain($data['scribd_doc_id']) . '" height="600" width="100%" type="application/x-shockwave-flash" data="http://d1.scribdassets.com/ScribdViewer.swf">');
-  $output[] = '<param name="movie" value="http://d1.scribdassets.com/ScribdViewer.swf">';
-  $output[] = '<param name="wmode" value="opaque">';
-  $output[] = '<param name="bgcolor" value="#ffffff">';
-  $output[] = '<param name="allowFullScreen" value="true">';
-  $output[] = '<param name="allowScriptAccess" value="always">';
-  $output[] = '<param name="FlashVars" value="document_id=' . check_plain($data['scribd_doc_id']) . '&access_key=' . check_plain($data['scribd_access_key']) . '&page=1&viewMode=list">';
-  $output[] = '<embed id="doc_' . check_plain($data['scribd_doc_id']) . '" name="doc_' . check_plain($data['scribd_doc_id']) . '" src="http://d1.scribdassets.com/ScribdViewer.swf?document_id=' . check_plain($data['scribd_doc_id']) . '&access_key=' . check_plain($data['scribd_access_key']) . '&page=1&viewMode=list" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" height="600" width="100%" wmode="opaque" bgcolor="#ffffff"></embed>';
-  $output[] = '</object>';
-  return implode("\n", $output);
-}
-
-function _scribd_display_embed_html5($matches) {
-  $data['scribd_doc_id'] = $matches[1];
-  $data['scribd_access_key'] = $matches[2];
-  $output = array('<iframe class="scribd_iframe_embed" src="http://www.scribd.com/embeds/' . check_plain($data['scribd_doc_id']) . '/content?start_page=1&view_mode=list&access_key=' . check_plain($data['scribd_access_key']) . '" data-auto-height="true" data-aspect-ratio="1.44339622641509" scrolling="no" id="doc_' . check_plain($data['scribd_doc_id']) . '" width="100%" height="600" frameborder="0"></iframe><script type="text/javascript">(function() { var scribd = document.createElement("script"); scribd.type = "text/javascript"; scribd.async = true; scribd.src = "http://www.scribd.com/javascripts/embed_code/inject.js"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(scribd, s); })();</script>');
-  return implode("\n", $output);
-}
-
-/**
- * Replace the text with a link.
- */
-function _scribd_display_link($matches) {
-  $data['scribd_doc_id'] = $matches[1];
-  $data['scribd_access_key'] = $matches[2];
-  $scribd_url = 'http://www.scribd.com/full/' . check_plain($data['scribd_doc_id']) . '?access_key=' . check_plain($data['scribd_access_key']);
-  return l($scribd_url, $scribd_url);
-}
