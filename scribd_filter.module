@@ -20,7 +20,7 @@ function scribd_filter_help($path, $arg) {
       $output .= '<dl>';
       $output .= '<dt>' . t('Usage') . '</dt>';
       $output .= '<dd>' . t('To embed a document, you need to use the following code snippet: <samp>[scribd id=doc_id key=access_key mode=mode]</samp>.') . ' where mode is optional.</dd>';
-      $output .= '<dt>' . t('How to find the album id?') . '</dt>';
+      $output .= '<dt>' . t('How to find the document id?') . '</dt>';
       $output .= '<dd><ul>';
       $output .= '<li>' . t('Navigate to Scribd and find the embed button') . '.</li>';
       $output .= '<li>' . t('Click on embed') . '.</li>';
