@@ -108,7 +108,7 @@ class ScribdInputFilter {
   }
 
   protected function embed_html5($scribd_doc_id, $scribd_access_key, $scribd_mode = 'scroll') {
-    $output = array('<iframe class="scribd_iframe_embed" src="http://www.scribd.com/embeds/' . $scribd_doc_id . '/content?start_page=1&view_mode=' . $scribd_mode . '&access_key=' . $scribd_access_key . '" data-auto-height="true" data-aspect-ratio="1.44339622641509" scrolling="no" id="doc_' . $scribd_doc_id . '" width="100%" height="600" frameborder="0"></iframe>');
+    $output = array('<iframe class="scribd_iframe_embed" src="//www.scribd.com/embeds/' . $scribd_doc_id . '/content?start_page=1&view_mode=' . $scribd_mode . '&access_key=' . $scribd_access_key . '" data-auto-height="true" data-aspect-ratio="1.44339622641509" scrolling="no" id="doc_' . $scribd_doc_id . '" width="100%" height="600" frameborder="0"></iframe>');
     return implode("\n", $output);
   }
 
@@ -116,7 +116,7 @@ class ScribdInputFilter {
    * Replace the text with a link.
    */
   function link($scribd_doc_id, $scribd_access_key) {
-    $scribd_url = 'http://www.scribd.com/full/' . $scribd_doc_id . '?access_key=' . $scribd_access_key;
+    $scribd_url = '//www.scribd.com/full/' . $scribd_doc_id . '?access_key=' . $scribd_access_key;
     return l($scribd_url, $scribd_url);
   }
 }
