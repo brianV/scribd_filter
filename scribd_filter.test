@@ -9,6 +9,7 @@ class ScribdFilterTestCase extends DrupalWebTestCase {
   protected $contentType;
   protected $scribd_document_id = '50662460';
   protected $scribd_access_key = 'key-1pf4xhwewj9fj8m54q0l';
+  protected $scribd_mode = 'scroll';
 
   public static function getInfo() {
     return array(
@@ -55,14 +56,7 @@ class ScribdFilterTestCase extends DrupalWebTestCase {
     $result = $this->drupalPost('node/add/' . $this->contentType->type, $edit, t('Save'));
     $this->assertResponse(200);
     $this->assertRaw("Hello! ");
-    $this->assertRaw('<script type="text/javascript" src="http://www.scribd.com/javascripts/view.js"></script>
-<div id="embedded_flash" class="collapsible collapsed"></div>
-<script type="text/javascript">
-var scribd_doc = scribd.Document.getDoc("' . $this->scribd_document_id . '", "' . $this->scribd_access_key . '");
-scribd_doc.addParam("jsapi_version", 1);
-scribd_doc.write("embedded_flash");
-</script>');
-
+    $this->assertRaw('<iframe class="scribd_iframe_embed" src="//www.scribd.com/embeds/' . $this->scribd_document_id . '/content?start_page=1&view_mode=' . $this->scribd_mode . '&access_key=' . $this->scribd_access_key . '" data-auto-height="true" data-aspect-ratio="1.44339622641509" scrolling="no" id="doc_' . $this->scribd_document_id . '" width="100%" height="600" frameborder="0"></iframe>');
   }
 
   /**
@@ -87,6 +81,5 @@ scribd_doc.write("embedded_flash");
     $this->assertResponse(200);
     $url = 'http://www.scribd.com/full/' . $this->scribd_document_id . '?access_key=' . $this->scribd_access_key;
     $this->assertRaw('Hello! <a href="' . $url . '">' . $url . '</a>');
-
   }
 }
