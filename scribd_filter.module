@@ -42,7 +42,8 @@ function scribd_filter_filter_info() {
     'process callback'  => 'scribd_filter_scribd_filter_process',
     'default settings' => array(
       'scribd_filter_display_method' => 'embed',
-    ),
+      'scribd_filter_display_mode' => 'scroll',
+      ),
     'settings callback' => 'scribd_filter_scribd_filter_settings',
     'tips callback' => 'scribd_filter_filter_tips',
     'cache' => TRUE,
@@ -62,7 +63,7 @@ class ScribdInputFilter {
   
   static public function type() {
     return array(
-      'embed_html5' => 'Html5',
+      'embed' => 'Html5',
       'link' => 'Link'
     );
   }
@@ -144,7 +145,7 @@ function scribd_filter_scribd_filter_settings($form, $form_state, $filter, $form
     '#type' => 'select',
     '#options' => ScribdInputFilter::mode(),
     '#default_value' => isset($filter->settings['scribd_filter_display_mode']) ? $filter->settings['scribd_filter_display_mode'] : $defaults['scribd_filter_display_mode'],
-  );  
+  );
   return $settings;
 }
 
