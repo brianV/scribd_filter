@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Provides the ability to embed documents from Scribd.
@@ -8,12 +9,14 @@
  * with a link to the scribd or embedding the scribd itself.
  */
 
+use Drupal\Core\Routing\RouteMatchInterface;
+
 /**
  * Implements hook_help().
  */
-function scribd_filter_help($path, $arg) {
-  switch ($path) {
-    case 'admin/help#scribd_filter':
+function scribd_filter_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.scribd_filter':
       $output = '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('The Scribd Input filter makes it possible to embed documents from Scribd everywhere input filters are accepted. For more information, see the project for <a href="@scribd_filter">Scribd Input Filter</a>.', array('@scribd_filter' => 'http://drupal.org/project/scribd_filter')) . '</p>';
       $output .= '<h3>' . t('Uses') . '</h3>';
